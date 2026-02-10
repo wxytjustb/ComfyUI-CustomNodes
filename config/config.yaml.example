@@ -1,0 +1,71 @@
+# ComfyUI Custom API 标准配置示例
+# 复制为 config.yaml 后按需修改
+#
+# 结构说明：
+# - env_api_key: 全局 API 密钥定义（name/value/description），value 可选，不填则从环境变量 name 读取
+# - providers: 平台列表，每个平台有 name/type/api_key_env/base_url/models
+# - node_config: 每个节点可用的 provider/model 及默认项（is_default: true）
+
+# 全局 API 密钥（可选；也可只用环境变量）
+env_api_key:
+  - name: VECTORENGINE_GEMINI_API_KEY
+    value: "your-api-key-here"
+    description: "Gemini 图像模型 API 密钥"
+  - name: GEMINI_API_KEY
+    description: "Google Gemini API 密钥"
+  - name: VECTORENGINE_API_KEY
+    description: "VectorEngine 平台 API 密钥"
+
+# 平台定义：不同平台对应不同 base_url 与接口类型（google / openai_v1）
+providers:
+  # vectorengine：OpenAI 兼容接口，但 gemini 模型用 type: google 走 Google 协议
+  - name: vectorengine
+    type: openai_v1
+    api_key_env: VECTORENGINE_API_KEY
+    base_url: https://api.vectorengine.ai
+    models:
+      gemini-3-pro-image-preview:
+        model_name: gemini-3-pro-image
+        api_key_env: VECTORENGINE_GEMINI_API_KEY
+        type: google
+
+  # 官方 Gemini 接口
+  - name: google_gemini
+    type: google
+    api_key_env: GEMINI_API_KEY
+    base_url: null
+    models:
+      gemini-3-pro-image-preview:
+        model_name: gemini-3-pro-image
+        api_key_env: VECTORENGINE_GEMINI_API_KEY
+        type: google
+      flash:
+        model_name: gemini-2.5-flash-preview-05-20
+      pro:
+        model_name: gemini-2.5-pro-preview-06-05
+
+# 节点与可用模型：每个节点只展示此处配置的 provider/model，未配置则展示全部
+node_config:
+  - name: GeminiImageProNode
+    models:
+      - provider: vectorengine
+        model: gemini-3-pro-image-preview
+        is_default: true
+      - provider: google_gemini
+        model: gemini-3-pro-image-preview
+
+  - name: GeminiImageNode
+    models:
+      - provider: vectorengine
+        model: gemini-3-pro-image-preview
+        is_default: true
+      - provider: google_gemini
+        model: gemini-3-pro-image-preview
+
+  - name: GeminiNode
+    models:
+      - provider: google_gemini
+        model: flash
+        is_default: true
+      - provider: google_gemini
+        model: pro

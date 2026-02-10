@@ -1,0 +1,12 @@
+# ComfyUI Gemini Nodes Requirements
+# 配置与核心
+pyyaml>=6.0
+
+# 图像处理（节点与引擎）
+pillow>=9.0.0
+
+# Google Gemini 引擎（仅在使用 google 类型 provider 时需要）
+google-genai>=1.0.0
+
+# OpenAI/OpenRouter/VectorEngine 等兼容 API（仅在使用 openai/openai_v1 时需要）
+requests>=2.28.0
