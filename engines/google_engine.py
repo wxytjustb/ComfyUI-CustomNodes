@@ -60,9 +60,10 @@ class GoogleEngine(BaseEngine):
         prompt: str,
         model_id: str,
         output_path: Optional[str] = None,
-        aspect_ratio: str = "16:9",
+        aspect_ratio: str = "1:1",
         image_size: str = "2K",
         reference_images: Optional[List] = None,
+        system_prompt: Optional[str] = None,
         **kwargs,
     ) -> Dict[str, Any]:
         """
@@ -95,16 +96,21 @@ class GoogleEngine(BaseEngine):
                     elif isinstance(img, Image.Image):
                         contents.append(img)
 
+            # Build generation config
+            config_kwargs: Dict[str, Any] = {
+                "response_modalities": ["IMAGE"],
+                "image_config": types.ImageConfig(
+                    aspect_ratio=aspect_ratio, image_size=image_size
+                ),
+            }
+            if system_prompt:
+                config_kwargs["system_instruction"] = system_prompt
+
             # Make API call
             response = self.client.models.generate_content(
                 model=model_id,
                 contents=contents,
-                config=types.GenerateContentConfig(
-                    response_modalities=["IMAGE"],
-                    image_config=types.ImageConfig(
-                        aspect_ratio=aspect_ratio, image_size=image_size
-                    ),
-                ),
+                config=types.GenerateContentConfig(**config_kwargs),
             )
 
             # Check for valid response

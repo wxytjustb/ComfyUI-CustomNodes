@@ -25,9 +25,10 @@ class BaseEngine(ABC):
         prompt: str,
         model_id: str,
         output_path: Optional[str] = None,
-        aspect_ratio: str = "16:9",
+        aspect_ratio: str = "1:1",
         image_size: str = "2K",
         reference_images: Optional[List] = None,
+        system_prompt: Optional[str] = None,
         **kwargs,
     ) -> Dict[str, Any]:
         """
@@ -40,6 +41,7 @@ class BaseEngine(ABC):
             aspect_ratio: Aspect ratio for image generation
             image_size: Image size (1K, 2K, 4K)
             reference_images: Optional reference images
+            system_prompt: Optional system instructions (used as system_instruction)
             **kwargs: Additional parameters
 
         Returns:

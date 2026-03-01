@@ -299,6 +299,7 @@ class GeminiImageNode:
             aspect_ratio=aspect_ratio,
             image_size="2K",
             reference_images=image_bytes_list,
+            system_prompt=system_prompt if system_prompt else None,
         )
 
         if result.get("success"):
@@ -365,6 +366,10 @@ class GeminiImageProNode:
                         "default": GEMINI_IMAGE_SYS_PROMPT,
                     },
                 ),
+                "aspect_ratio": (
+                    ["1:1", "4:3", "3:4", "16:9", "9:16"],
+                    {"default": "1:1"},
+                ),
                 "num_images": ("INT", {"default": 1, "min": 1, "max": 4}),
             },
         }
@@ -383,6 +388,7 @@ class GeminiImageProNode:
         reference_images: Optional[torch.Tensor] = None,
         negative_prompt: str = "",
         system_prompt: str = "",
+        aspect_ratio: str = "1:1",
         num_images: int = 1,
     ) -> Tuple[torch.Tensor, str]:
         """Generate professional images"""
@@ -408,10 +414,15 @@ class GeminiImageProNode:
             else:
                 image_bytes_list = [tensor_to_bytes(reference_images)]
 
-        # Build enhanced prompt
-        enhanced_prompt = prompt
-        if negative_prompt:
-            enhanced_prompt += f"\n\nAvoid: {negative_prompt}"
+        # Build effective system instruction:
+        # negative_prompt is appended here so the main prompt stays clean and focused.
+        # Gemini best practice: restrictions/avoidances belong in system_instruction,
+        # not embedded in the user-facing creative prompt.
+        effective_system_prompt = system_prompt.strip() if system_prompt else ""
+        # 暂时去掉 negative_prompt，因为 Gemini 不支持
+        # if negative_prompt and negative_prompt.strip():
+        #     avoidance = f"\n\nNever include any of the following in the generated image: {negative_prompt.strip()}"
+        #     effective_system_prompt = effective_system_prompt + avoidance
 
         # 使用配置中的 model key 作为 API 的 model_id
         model_info = config_manager.get_model_info(provider_model)
@@ -425,10 +436,12 @@ class GeminiImageProNode:
         img_tensors = []
         for i in range(num_images):
             result = engine.generate(
-                prompt=enhanced_prompt,
+                prompt=prompt,
                 model_id=model_id,
+                aspect_ratio=aspect_ratio,
                 image_size=resolution,
                 reference_images=image_bytes_list,
+                system_prompt=effective_system_prompt or None,
             )
 
             if result.get("success"):
@@ -439,7 +452,7 @@ class GeminiImageProNode:
 
         if img_tensors:
             combined = torch.cat(img_tensors, dim=0)
-            info = f"Generated {len(img_tensors)} image(s) using {provider_model} (model: {model_id}) at {resolution}"
+            info = f"Generated {len(img_tensors)} image(s) using {provider_model} (model: {model_id}) at {resolution} {aspect_ratio}"
             return (combined, info)
         else:
             empty_img = torch.zeros((1, 512, 512, 3))
