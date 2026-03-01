@@ -242,7 +242,7 @@ class GeminiImageNode:
                 ),
                 "aspect_ratio": (
                     ["1:1", "4:3", "3:4", "16:9", "9:16"],
-                    {"default": "1:1"},
+                    {"default": "16:9"},
                 ),
             },
         }
@@ -368,7 +368,7 @@ class GeminiImageProNode:
                 ),
                 "aspect_ratio": (
                     ["1:1", "4:3", "3:4", "16:9", "9:16"],
-                    {"default": "1:1"},
+                    {"default": "16:9"},
                 ),
                 "num_images": ("INT", {"default": 1, "min": 1, "max": 4}),
             },
